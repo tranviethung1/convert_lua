@@ -106,8 +106,8 @@ writer = csv.DictWriter(output, fieldnames=header)
 writer.writerow(csv_line)
 csv_result = output.getvalue().strip()
 
-with open("tmp.txt", "w", encoding="utf-8", newline="") as f:
+with open("effect_event_tmp.txt", "w", encoding="utf-8", newline="") as f:
     f.write(csv_result + "\n")
 
-print("✅ CSV line written to tmp.txt")
+print("✅ CSV line written to effect_event_tmp.txt")
 

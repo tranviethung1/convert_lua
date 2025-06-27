@@ -1,0 +1,1 @@
+40110921,周年庆245,,,,,,,,,,,,,,1,1,,,,1,,<qingchu_loop>,,,,,,,,,,,,,,,,,,,,,,,,<{effectFuncs=<castBuff>;triggerPoint=12;funcArgs=<<{caster=2;cfgId=40110922;holder=1;lifeRound=1;value=800}>>;nodeId=1}>,,,,,,,,,,,,,,

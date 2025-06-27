@@ -78,20 +78,17 @@ def parse_lua_file(content):
     return result
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print("Sử dụng: python lua_table_to_json.py <file.lua>")
-        sys.exit(1)
 
     try:
-        with open(sys.argv[1], "r", encoding="utf-8") as f:
-            content = f.read()
+        with open("input_data.lua", "r", encoding="utf-8") as f:
+            content = f.read().strip()
         parsed = parse_lua_file(content)
 
         # In kết quả ra màn hình
         print(json.dumps(parsed, indent=2, ensure_ascii=False))
 
         # Ghi vào file convert.json
-        with open("convert.json", "w", encoding="utf-8") as out:
+        with open("output_data.json", "w", encoding="utf-8") as out:
             json.dump(parsed, out, indent=2, ensure_ascii=False)
 
         print("✅ Đã ghi kết quả vào file convert.json")

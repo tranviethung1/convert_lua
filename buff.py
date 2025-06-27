@@ -1,171 +1,103 @@
-# File: convert_json_to_custom_csv.py
-
 import csv
 import io
 import json
-import re
 
-# New header (merged with original fields)
-header = '''
-变量名,name,_desc,_mark1,_mark2,easyEffectFunc,_effect,_easy,skillTimePos,group,groupPower,ignoreControlVal,immuneBuff,dispelBuff,dispelType,overlayType,overlayLimit,skin,isShow,iconResPath,isIconFrame,effectResPath,effectAniName,effectAniChoose,effectResDelay,effectPos,effectAssignLayer,effectOffsetPos,effectShowOnAttack,onceEffectResPath,onceEffectAniName,onceEffectDelay,onceEffectPos,onceEffectAssignLayer,onceEffectOffsetPos,onceEffectWait,linkEffect,effectOnEnd,holderActionType,textResPath,deepCorrect,triggerPriority,specialVal,specialTarget,ignoreHolder,ignoreCaster,triggerBehaviors,limitTimes,lifeRoundType,lifeTimeEnd,buffshader,waveInherit,craftTriggerLimit,gateLimit,noDelWhenFakeDeath,showExplorer,explorerID,showHeldItem,heldItemID,buffActionEffect,stageArgs,skillName,skillName_tw,skillName_en,skillName_kr,_beizhu,skillTypeShow,skillTypeShow_tw,skillTypeShow_en,describe,describe_tw,describe_en,describe_kr,simDesc,simDesc_tw,simDesc_en,simDesc_kr,starEffect,starEffectDesc,starEffectDesc_tw,starEffectDesc_en,starEffectDesc_kr,zawakeEffect,zawakeEffectDesc,zawakeEffectDesc_tw,zawakeEffectDesc_en,zawakeEffectDesc_kr,zawakeSimpleType,zawakeSimpleDesc,zawakeSimpleDesc_tw,zawakeSimpleDesc_en,zawakeSimpleDesc_kr,upLvDesc,upLvDesc_tw,upLvDesc_en,upLvDesc_kr,iconRes,isGlobal,changeUnitTrigger,isCombat,alwaysEffective,passivePriority,skillType,skillType2,skillDamageType,skillNatureType,skillPower,skillHit,weather,cdRound,startRound,passiveStartRound,passiveTriggerType,passiveTriggerArg,posChoose,moveTime,specialChoose,hitFormula,hintTargetType,hintChoose,specialHintChoose,autoHintChoose,targetTypeDesc,targetChooseType,targetTypeDesc_en,targetTypeDesc_kr,targetTypeDesc_tw,_attacktest,damageFormula,_damageFormula,hpFormula,skillCalDamageProcessId,diffSkillCalDmgProcessId,skillProcess,passiveSkillAttrs,activeType,activeCondition,fightingPoint,costMp1,costMp1Args,recoverMp1,widgetEffects,hurtMp1,costID,posC,chargeArgs,skillArgs,conditionValue,spineAction,flashBack,cameraNear,cameraNear_posC,cameraNear_blankTime,cameraNear_scaleArgs,blankTime,scaleArgs,effectBigName,effectBigPos,effectBigFlip,notShowProcedure,hurtPos,sound,allEffectTime
-'''.strip().split(',')
+# Header fields
+header2 = '''变量名,name,_desc,_mark1,_mark2,easyEffectFunc,_effect,_easy,skillTimePos,group,groupPower,ignoreControlVal,immuneBuff,dispelBuff,dispelType,overlayType,overlayLimit,skin,isShow,iconResPath,isIconFrame,effectResPath,effectAniName,effectAniChoose,effectResDelay,effectPos,effectAssignLayer,effectOffsetPos,effectShowOnAttack,onceEffectResPath,onceEffectAniName,onceEffectDelay,onceEffectPos,onceEffectAssignLayer,onceEffectOffsetPos,onceEffectWait,linkEffect,effectOnEnd,holderActionType,textResPath,deepCorrect,triggerPriority,specialVal,specialTarget,ignoreHolder,ignoreCaster,triggerBehaviors,limitTimes,lifeRoundType,lifeTimeEnd,buffshader,waveInherit,craftTriggerLimit,gateLimit,noDelWhenFakeDeath,showExplorer,explorerID,showHeldItem,heldItemID,buffActionEffect,stageArgs'''.split(',')
 
-# Raw input JSON
+# Raw text input
 raw_text = '''
 {
-  "id": 3771120,
-  "name": "超坏星",
+  "id": 40110921,
+  "name": "周年庆245",
   "overlayType": 1,
   "overlayLimit": 1,
   "isIconFrame": 1,
-  "triggerBehaviors": "{{['effectFuncs'] = {'castBuff', 'castBuff', 'castBuff'}, ['triggerPoint'] = 1, ['funcArgs'] = {{{['holder'] = 1, ['lifeRound'] = 3, ['value'] = 'self:defence()*0.4+self:specialDefence()*0.4', ['cfgId'] = 3771111, ['caster'] = 2, __size = 5}}, {{['holder'] = 2, ['lifeRound'] = 2, ['value'] = 'self:defence()*0.18', ['cfgId'] = 3771118, ['caster'] = 2, __size = 5}}, {{['holder'] = 2, ['lifeRound'] = 2, ['value'] = 'self:specialDefence()*0.18', ['cfgId'] = 3771119, ['caster'] = 2, __size = 5}}}, ['nodeId'] = 1, __size = 4}}"
+  "effectAniName": "{'qingchu_loop'}",
+  "triggerBehaviors": "<{effectFuncs=<castBuff>;triggerPoint=12;funcArgs=<<{caster=2;cfgId=40110922;holder=1;lifeRound=1;value=800}>>;nodeId=1}>"
 }
 '''
 
-parsed_data = json.loads(raw_text)
+# Parse JSON text
+parsed_buff_data = json.loads(raw_text)
 
-DEFAULT_VALUE = ''
+# Convert effectAniName if in {'...'} format
+if isinstance(parsed_buff_data.get("effectAniName"), str):
+    val = parsed_buff_data["effectAniName"]
+    if val.startswith("{'") and val.endswith("'}"):
+        parsed_buff_data["effectAniName"] = f"<{val[2:-2]}>"
 
-def parse_curly_list(value):
-    if isinstance(value, str):
-        return list(map(int, re.findall(r'\d+', value)))
-    return value
+# Manual mapping
+buff_csv_line = {}
+buff_csv_line['变量名'] = parsed_buff_data.get('id', '')
+buff_csv_line['name'] = parsed_buff_data.get('name', '')
+buff_csv_line['_desc'] = parsed_buff_data.get('_desc', '')
+buff_csv_line['_mark1'] = parsed_buff_data.get('_mark1', '')
+buff_csv_line['_mark2'] = parsed_buff_data.get('_mark2', '')
+buff_csv_line['easyEffectFunc'] = parsed_buff_data.get('easyEffectFunc', '')
+buff_csv_line['_effect'] = parsed_buff_data.get('_effect', '')
+buff_csv_line['_easy'] = parsed_buff_data.get('_easy', '')
+buff_csv_line['skillTimePos'] = parsed_buff_data.get('skillTimePos', '')
+buff_csv_line['group'] = parsed_buff_data.get('group', '')
+buff_csv_line['groupPower'] = parsed_buff_data.get('groupPower', '')
+buff_csv_line['ignoreControlVal'] = parsed_buff_data.get('ignoreControlVal', '')
+buff_csv_line['immuneBuff'] = parsed_buff_data.get('immuneBuff', '')
+buff_csv_line['dispelBuff'] = parsed_buff_data.get('dispelBuff', '')
+buff_csv_line['dispelType'] = parsed_buff_data.get('dispelType', '')
+buff_csv_line['overlayType'] = parsed_buff_data.get('overlayType', '')
+buff_csv_line['overlayLimit'] = parsed_buff_data.get('overlayLimit', '')
+buff_csv_line['skin'] = parsed_buff_data.get('skin', '')
+buff_csv_line['isShow'] = parsed_buff_data.get('isShow', '')
+buff_csv_line['iconResPath'] = parsed_buff_data.get('iconResPath', '')
+buff_csv_line['isIconFrame'] = parsed_buff_data.get('isIconFrame', '')
+buff_csv_line['effectResPath'] = parsed_buff_data.get('effectResPath', '')
+buff_csv_line['effectAniName'] = parsed_buff_data.get('effectAniName', '')
+buff_csv_line['effectAniChoose'] = parsed_buff_data.get('effectAniChoose', '')
+buff_csv_line['effectResDelay'] = parsed_buff_data.get('effectResDelay', '')
+buff_csv_line['effectPos'] = parsed_buff_data.get('effectPos', '')
+buff_csv_line['effectAssignLayer'] = parsed_buff_data.get('effectAssignLayer', '')
+buff_csv_line['effectOffsetPos'] = parsed_buff_data.get('effectOffsetPos', '')
+buff_csv_line['effectShowOnAttack'] = parsed_buff_data.get('effectShowOnAttack', '')
+buff_csv_line['onceEffectResPath'] = parsed_buff_data.get('onceEffectResPath', '')
+buff_csv_line['onceEffectAniName'] = parsed_buff_data.get('onceEffectAniName', '')
+buff_csv_line['onceEffectDelay'] = parsed_buff_data.get('onceEffectDelay', '')
+buff_csv_line['onceEffectPos'] = parsed_buff_data.get('onceEffectPos', '')
+buff_csv_line['onceEffectAssignLayer'] = parsed_buff_data.get('onceEffectAssignLayer', '')
+buff_csv_line['onceEffectOffsetPos'] = parsed_buff_data.get('onceEffectOffsetPos', '')
+buff_csv_line['onceEffectWait'] = parsed_buff_data.get('onceEffectWait', '')
+buff_csv_line['linkEffect'] = parsed_buff_data.get('linkEffect', '')
+buff_csv_line['effectOnEnd'] = parsed_buff_data.get('effectOnEnd', '')
+buff_csv_line['holderActionType'] = parsed_buff_data.get('holderActionType', '')
+buff_csv_line['textResPath'] = parsed_buff_data.get('textResPath', '')
+buff_csv_line['deepCorrect'] = parsed_buff_data.get('deepCorrect', '')
+buff_csv_line['triggerPriority'] = parsed_buff_data.get('triggerPriority', '')
+buff_csv_line['specialVal'] = parsed_buff_data.get('specialVal', '')
+buff_csv_line['specialTarget'] = parsed_buff_data.get('specialTarget', '')
+buff_csv_line['ignoreHolder'] = parsed_buff_data.get('ignoreHolder', '')
+buff_csv_line['ignoreCaster'] = parsed_buff_data.get('ignoreCaster', '')
+buff_csv_line['triggerBehaviors'] = parsed_buff_data.get('triggerBehaviors', '')
+buff_csv_line['limitTimes'] = parsed_buff_data.get('limitTimes', '')
+buff_csv_line['lifeRoundType'] = parsed_buff_data.get('lifeRoundType', '')
+buff_csv_line['lifeTimeEnd'] = parsed_buff_data.get('lifeTimeEnd', '')
+buff_csv_line['buffshader'] = parsed_buff_data.get('buffshader', '')
+buff_csv_line['waveInherit'] = parsed_buff_data.get('waveInherit', '')
+buff_csv_line['craftTriggerLimit'] = parsed_buff_data.get('craftTriggerLimit', '')
+buff_csv_line['gateLimit'] = parsed_buff_data.get('gateLimit', '')
+buff_csv_line['noDelWhenFakeDeath'] = parsed_buff_data.get('noDelWhenFakeDeath', '')
+buff_csv_line['showExplorer'] = parsed_buff_data.get('showExplorer', '')
+buff_csv_line['explorerID'] = parsed_buff_data.get('explorerID', '')
+buff_csv_line['showHeldItem'] = parsed_buff_data.get('showHeldItem', '')
+buff_csv_line['heldItemID'] = parsed_buff_data.get('heldItemID', '')
+buff_csv_line['buffActionEffect'] = parsed_buff_data.get('buffActionEffect', '')
+buff_csv_line['stageArgs'] = parsed_buff_data.get('stageArgs', '')
 
-def list_to_str(val):
-    return f"<{';'.join(str(x) for x in val)}>" if isinstance(val, list) else val
-
-def dict_to_custom_string(data, exclude_keys=None):
-    if not isinstance(data, dict):
-        return data
-    if exclude_keys is None:
-        exclude_keys = []
-
-    def format_value(v):
-        if isinstance(v, bool):
-            return str(v).lower()
-        elif isinstance(v, list):
-            return list_to_str(v)
-        elif isinstance(v, dict):
-            return dict_to_custom_string(v, exclude_keys)
-        return v
-
-    return "{" + ";".join(f"{k}={format_value(v)}" for k, v in data.items() if k not in exclude_keys) + "}"
-
-def parse_trigger_behaviors(text):
-    # Chuyển về JSON-like syntax
-    text = text.replace("__size", '"__size"')
-    text = re.sub(r"\[(['\"]?)(\w+)\1\]", r'"\2"', text)  # ["key"] => "key"
-    text = text.replace("=", ":")
-    text = text.replace("'", '"')
-    text = text.replace("{{", "[").replace("}}", "]")
-
-    try:
-        obj = json.loads(text)
-    except Exception as e:
-        print("⚠️ Parse lỗi:", e)
-        return text  # fallback về nguyên gốc
-
-    def fmt(val):
-        if isinstance(val, dict):
-            return "{" + ";".join(f"{k}={fmt(v)}" for k, v in val.items() if k != "__size") + "}"
-        elif isinstance(val, list):
-            return "<" + ";".join(fmt(v) for v in val) + ">"
-        else:
-            return str(val)
-
-    return fmt(obj)
-
-csv_line = {
-    '变量名': parsed_data.get('id', ''),
-    'name': parsed_data.get('skillName', ''),
-    '_desc': parsed_data.get('describe', ''),
-    '_mark1': parsed_data.get('_mark1', ''),
-    '_mark2': parsed_data.get('_mark2', ''),
-    'easyEffectFunc': parsed_data.get('easyEffectFunc', ''),
-    '_effect': parsed_data.get('_effect', ''),
-    '_easy': parsed_data.get('_easy', ''),
-    'skillTimePos': parsed_data.get('skillTimePos', ''),
-    'group': parsed_data.get('group', ''),
-    'groupPower': parsed_data.get('groupPower', ''),
-    'ignoreControlVal': parsed_data.get('ignoreControlVal', ''),
-    'immuneBuff': parsed_data.get('immuneBuff', ''),
-    'dispelBuff': parsed_data.get('dispelBuff', ''),
-    'dispelType': parsed_data.get('dispelType', ''),
-    'overlayType': parsed_data.get('overlayType', ''),
-    'overlayLimit': parsed_data.get('overlayLimit', ''),
-    'skin': parsed_data.get('skin', ''),
-    'isShow': parsed_data.get('isShow', ''),
-    'iconResPath': parsed_data.get('iconRes', ''),
-    'isIconFrame': parsed_data.get('isIconFrame', ''),
-    'effectResPath': parsed_data.get('effectResPath', ''),
-    'effectAniName': parsed_data.get('effectAniName', ''),
-    'effectAniChoose': parsed_data.get('effectAniChoose', ''),
-    'effectResDelay': parsed_data.get('effectResDelay', ''),
-    'effectPos': parsed_data.get('effectPos', ''),
-    'effectAssignLayer': parsed_data.get('effectAssignLayer', ''),
-    'effectOffsetPos': parsed_data.get('effectOffsetPos', ''),
-    'effectShowOnAttack': parsed_data.get('effectShowOnAttack', ''),
-    'onceEffectResPath': parsed_data.get('onceEffectResPath', ''),
-    'onceEffectAniName': parsed_data.get('onceEffectAniName', ''),
-    'onceEffectDelay': parsed_data.get('onceEffectDelay', ''),
-    'onceEffectPos': parsed_data.get('onceEffectPos', ''),
-    'onceEffectAssignLayer': parsed_data.get('onceEffectAssignLayer', ''),
-    'onceEffectOffsetPos': parsed_data.get('onceEffectOffsetPos', ''),
-    'onceEffectWait': parsed_data.get('onceEffectWait', ''),
-    'linkEffect': parsed_data.get('linkEffect', ''),
-    'effectOnEnd': parsed_data.get('effectOnEnd', ''),
-    'holderActionType': parsed_data.get('holderActionType', ''),
-    'textResPath': parsed_data.get('textResPath', ''),
-    'deepCorrect': parsed_data.get('deepCorrect', ''),
-    'triggerPriority': parsed_data.get('triggerPriority', ''),
-    'specialVal': parsed_data.get('specialVal', ''),
-    'specialTarget': parsed_data.get('specialTarget', ''),
-    'ignoreHolder': parsed_data.get('ignoreHolder', ''),
-    'ignoreCaster': parsed_data.get('ignoreCaster', ''),
-    'triggerBehaviors': parse_trigger_behaviors(parsed_data.get('triggerBehaviors', '')),
-    'limitTimes': parsed_data.get('limitTimes', ''),
-    'lifeRoundType': parsed_data.get('lifeRoundType', ''),
-    'lifeTimeEnd': parsed_data.get('lifeTimeEnd', ''),
-    'buffshader': parsed_data.get('buffshader', ''),
-    'waveInherit': parsed_data.get('waveInherit', ''),
-    'craftTriggerLimit': parsed_data.get('craftTriggerLimit', ''),
-    'gateLimit': parsed_data.get('gateLimit', ''),
-    'noDelWhenFakeDeath': parsed_data.get('noDelWhenFakeDeath', ''),
-    'showExplorer': parsed_data.get('showExplorer', ''),
-    'explorerID': parsed_data.get('explorerID', ''),
-    'showHeldItem': parsed_data.get('showHeldItem', ''),
-    'heldItemID': parsed_data.get('heldItemID', ''),
-    'buffActionEffect': parsed_data.get('buffActionEffect', ''),
-    'stageArgs': parsed_data.get('stageArgs', ''),
-    'skillName': parsed_data.get('skillName', ''),
-    'describe': parsed_data.get('describe', ''),
-    'simDesc': parsed_data.get('simDesc', ''),
-    'starEffectDesc': parsed_data.get('starEffectDesc', ''),
-    'zawakeEffect': list_to_str(parsed_data.get('zawakeEffect', '')),
-    'zawakeEffectDesc': parsed_data.get('zawakeEffectDesc', ''),
-    'zawakeSimpleType': parsed_data.get('zawakeSimpleType', ''),
-    'zawakeSimpleDesc': parsed_data.get('zawakeSimpleDesc', ''),
-    'upLvDesc': parsed_data.get('upLvDesc', ''),
-    'iconRes': parsed_data.get('iconRes', ''),
-    'skillNatureType': parsed_data.get('skillNatureType', ''),
-    'posChoose': parsed_data.get('posChoose', ''),
-    'targetTypeDesc': parsed_data.get('targetTypeDesc', ''),
-    'targetChooseType': parsed_data.get('targetChooseType', ''),
-    'skillProcess': list_to_str(parse_curly_list(parsed_data.get('skillProcess', ''))),
-    'posC': dict_to_custom_string(parsed_data.get('posC', {}), exclude_keys=['__size']),
-    'sound': dict_to_custom_string(parsed_data.get('sound', {}), exclude_keys=['__size'])
-}
-
-# Ensure all headers exist in csv_line
-for key in header:
-    csv_line.setdefault(key, DEFAULT_VALUE)
-
+# Write CSV line
 output = io.StringIO()
-writer = csv.DictWriter(output, fieldnames=header)
-writer.writerow(csv_line)
+writer = csv.DictWriter(output, fieldnames=header2)
+writer.writerow(buff_csv_line)
 csv_result = output.getvalue().strip()
 
-with open("tmp.txt", "w", encoding="utf-8", newline="") as f:
-    f.write(csv_result)
+with open("buff_tmp.txt", "w", encoding="utf-8", newline="") as f:
+    f.write(csv_result + "\n")
 
-print("✅ CSV line written with new combined header to tmp.txt")
+print("✅ Buff CSV line written to buff_tmp.txt")
