@@ -244,8 +244,8 @@ def replace_brace_patterns(lua_text: str) -> str:
     return lua_text
 
 def convert_triple_brace_to_double_angle(lua_text: str) -> str:
-    lua_text = lua_text.replace("{{{", "<<{")
-    lua_text = lua_text.replace("}}}", "}>>")
+    lua_text = lua_text.replace("{{{", "<{{")
+    lua_text = lua_text.replace("}}}", "}}>")
     return lua_text
 
 def remove_unwanted_spaces(lua_text: str) -> str:
@@ -256,8 +256,20 @@ def remove_unwanted_spaces(lua_text: str) -> str:
     lua_text = re.sub(r'(,)\s+', r'\1', lua_text)
     return lua_text
 
+def convert_double_brace_blocks(lua_text: str) -> str:
+    # Leading `{{holder=` to `<{holder=`
+    lua_text = re.sub(r"\{\{\s*(holder=)", r"<{", lua_text)
+
+    # Trailing `}}` to `}>`
+    lua_text = re.sub(r"}}", ">", lua_text)
+
+    # Replace placeholder back to holder=
+    lua_text = lua_text.replace("\u0001", "holder=")
+
+    return lua_text
+
 # Input Lua string
-lua_input = """{{['effectFuncs'] = {'castBuff'}, ['triggerPoint'] = 12, ['funcArgs'] = {{{['holder'] = 14, ['lifeRound'] = 1, ['value'] = 'self:specialDamage()*2.5*(1+0.25*(6-getForceNum(self:force())))', ['cfgId'] = 40110962, ['caster'] = 2, __size = 5}}}, ['nodeId'] = 1, __size = 4}}"""
+lua_input = """{{['triggerPoint'] = 1, ['nodeId'] = 0, __size = 2}, {['effectFuncs'] = {'castBuff', 'castBuff'}, ['triggerPoint'] = 4, ['funcArgs'] = {{{['holder'] = {['input'] = 'selfForce|nodead', ['process'] = 'random(1)', __size = 2}, ['lifeRound'] = 1, ['value'] = '100*(self:getBuff(50017021):getValue() or 3)', ['cfgId'] = 50017022, ['caster'] = 2, __size = 5}}, {{['holder'] = {['input'] = 'selfForce|nodead', ['process'] = 'random(1)', __size = 2}, ['lifeRound'] = 1, ['value'] = 'target2:hpMax()*0.1*(self:getBuff(50017021):getValue() or 3)', ['cfgId'] = 50017023, ['caster'] = 2, __size = 5}}}, ['nodeId'] = 1, __size = 4}}"""
 
 # Step 1: Format lua
 formatted = format_lua_table(lua_input)
@@ -290,12 +302,13 @@ step13 = flatten_to_single_line(step12)
 
 step14 = replace_brace_patterns(step13)
 
-step15 = convert_triple_brace_to_double_angle(step14)
+step15 = remove_unwanted_spaces(step14)
+step16 = convert_triple_brace_to_double_angle(step15)
+step17 = convert_double_brace_blocks(step16)
 
-step16 = remove_unwanted_spaces(step15)
 
 # Write to file instead of printing
 with open('output_data.json', 'w', encoding='utf-8') as f:
-    f.write(step16)
+    f.write(step17)
 
 print(f"Output has been written to output_data.json")

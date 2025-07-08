@@ -1,1 +1,1 @@
-<{effectFuncs=<castBuff>;triggerPoint=12;funcArgs=<<{caster=2;cfgId=40110922;holder=1;lifeRound=1;value=800}>>;nodeId=1}>
+<{triggerPoint=1;nodeId=0};{effectFuncs=<castBuff;castBuff>;triggerPoint=4;funcArgs=<<{holder={input=selfForce|nodead;process=random(1)};lifeRound=1;value=100*(self:getBuff(50017021):getValue() or 3);cfgId=50017022;caster=2>;<{holder={input=selfForce|nodead;process=random(1)};lifeRound=1;value=target2:hpMax()*0.1*(self:getBuff(50017021):getValue() or 3);cfgId=50017023;caster=2>>;nodeId=1}>
