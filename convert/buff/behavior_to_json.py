@@ -1,5 +1,10 @@
 import re
 
+# Input Lua string
+lua_input = """
+{{['effectFuncs'] = {'castBuff'}, ['triggerPoint'] = 10, ['funcArgs'] = {{{['holder'] = 14, ['lifeRound'] = 1, ['value'] = 'target2:hpMax()*0.15', ['cfgId'] = 50107042, ['caster'] = 2, __size = 5}}}, ['onSomeFlag'] = {'lessThan(self:hp()/self:hpMax(),0.12)'}, ['nodeId'] = 1, __size = 5}}
+"""
+
 def format_lua_table(lua_str: str) -> str:
     indent = 0
     result = ""
@@ -268,8 +273,7 @@ def convert_double_brace_blocks(lua_text: str) -> str:
 
     return lua_text
 
-# Input Lua string
-lua_input = """{{['triggerPoint'] = 1, ['nodeId'] = 0, __size = 2}, {['effectFuncs'] = {'castBuff', 'castBuff'}, ['triggerPoint'] = 4, ['funcArgs'] = {{{['holder'] = {['input'] = 'selfForce|nodead', ['process'] = 'random(1)', __size = 2}, ['lifeRound'] = 1, ['value'] = '100*(self:getBuff(50017021):getValue() or 3)', ['cfgId'] = 50017022, ['caster'] = 2, __size = 5}}, {{['holder'] = {['input'] = 'selfForce|nodead', ['process'] = 'random(1)', __size = 2}, ['lifeRound'] = 1, ['value'] = 'target2:hpMax()*0.1*(self:getBuff(50017021):getValue() or 3)', ['cfgId'] = 50017023, ['caster'] = 2, __size = 5}}}, ['nodeId'] = 1, __size = 4}}"""
+
 
 # Step 1: Format lua
 formatted = format_lua_table(lua_input)
